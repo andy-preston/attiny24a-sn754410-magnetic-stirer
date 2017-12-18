@@ -8,15 +8,11 @@
             .def rOut=R19
             .def rMask=R20
 
-            .org 0x0000             ; reset vector
-            rjmp reset
-
-            .org 0x000E             ; ADC Conversion Complete Interrupt vector:
-            rjmp ADC_ISR
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-reset:      ldi rTemp, low(RAMEND)  ; stack setup; set SPH:SPL to RAMEND
+            .org 0x0000             ; reset vector
+
+            ldi rTemp, low(RAMEND)  ; stack setup; set SPH:SPL to RAMEND
             out SPL, rTemp
             ldi rTemp, high(RAMEND)
             out SPH, rTemp
