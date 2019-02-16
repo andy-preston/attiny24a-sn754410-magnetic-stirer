@@ -14,14 +14,7 @@
 ; only registers r16-r31 can use immediate
 .def quickReg = r16     ; very short intermediate values
 .def countReg = r17
-.def stringLReg = r18
-;.def stringHReg = r19
-.def dispReg = r20      ; value to write to PORTC for display
-; r21
-; numReg is only used by num-disp.asm - that may need rewriting yet
-.def numReg = r22       ; A number value from a control on the panel
-
-.def portReg = r23      ; value to write to AVR port - SPI chip register ID
+.def shiftReg = r18
 .def lhReg = r24
 .def lowReg = r24
 .def highReg = r25
