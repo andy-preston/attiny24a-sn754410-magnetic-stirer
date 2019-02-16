@@ -6,7 +6,7 @@
 .org 0x003E
 .include "../lib/registers.asm"
 .include "../lib/digital.asm"
-.include "test-delay.asm"
+.include "../lib/delay.asm"
 
 progStart:
     CLI
@@ -16,7 +16,7 @@ seqStart:
     LDI countReg, 0x20
 loop:
     blink
-    delayLoopR countReg
+    delayLoop countReg
 
     DEC countReg
     BRNE loop

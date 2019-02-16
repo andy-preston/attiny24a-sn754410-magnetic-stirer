@@ -6,7 +6,7 @@
 .org 0x003E
 .include "../lib/registers.asm"
 .include "../lib/digital.asm"
-.include "test-delay.asm"
+.include "../lib/delay.asm"
 
 progStart:
     CLI
@@ -20,7 +20,7 @@ loop:
     EOR ioReg, quickReg
     OUT PORTA, ioReg
 
-    delayLoopR countReg
+    delayLoop countReg
 
     DEC countReg
     BRNE loop

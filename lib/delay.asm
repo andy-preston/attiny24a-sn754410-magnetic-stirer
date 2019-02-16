@@ -1,4 +1,4 @@
-.macro delayLoopR
+.macro delayLoop
     MOV r1, @0
 delay:
     LDI quickReg, 0xFF
@@ -13,9 +13,4 @@ innerDelay:
     BRNE outerDelay
     DEC r1
     BRNE delay
-.endm
-
-.macro delayLoopI
-    LDI quickReg, @0
-    delayLoopR quickReg
 .endm
