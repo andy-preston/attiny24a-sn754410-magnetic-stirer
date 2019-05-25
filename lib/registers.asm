@@ -1,3 +1,10 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; TODO: This is the registers file from Crstal-Palace - make sure if they're
+; not used they're not here anymore
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ; r1, r2 and r3 are used by test/test-delay.asm
 
 .def calcReg = r8
@@ -14,7 +21,7 @@
 .def inputReg = r22
 .def inputLReg = r22 ; inputReg is sometimes 16 bit
 .def inputHReg = r23
-.def adccReg = r24
+.def adcReg = r24
 .def ioReg = r25
 ; XL, XH, YL, YH, ZL, ZH don't seem to get defined in my version of GAVRASM
 .def X = r26

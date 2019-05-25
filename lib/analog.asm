@@ -1,42 +1,50 @@
-.EQU useARef = 0
-.EQU useAVcc = (1<<REFS0) ; Capacitor on AREF
-.EQU useIRef = (1<<REFS0) | (1<<REFS1) ; Internal 2.56V reference
+; Internal 1.1V voltage reference, by datasheet external capacitor should be
+; connected to Aref calibrated for actual chip (e.g. 1.197V)
+;equ INTERNAL_VREF = (1.197 / 1024)
 
-.EQU prescale2   =                           (1<<ADPS0)
-.EQU prescale4   =              (1<<ADPS1)
-.EQU prescale8   =              (1<<ADPS1) | (1<<ADPS0)
-.EQU prescale16  = (1<<ADPS2)
-.EQU prescale32  = (1<<ADPS2)              | (1<<ADPS0)
-.EQU prescale64  = (1<<ADPS2) | (1<<ADPS1)
-.EQU prescale128 = (1<<ADPS2) | (1<<ADPS1) | (1<<ADPS0)
+.equ muxAdc7 = 0b00000111
 
-.EQU muxFlags = useAVcc
-.EQU controlFlags = (1<<ADEN) | prescale128
-.EQU startConv = (1<<ADSC) | controlFlags
+.equ useVccARef = 0           ; disconnected from PA0 (AREF)
+.equ useExtAref = (1<<REFS0)  ; PA0 (AREF), internal voltage ref. off
+.equ useIRef =    (1<<REFS1)  ; Internal 1.1V reference
 
-.MACRO setupAnalog
-    LDI portReg, muxFlags    ; Set individual MUX bits later
-    STS ADMUX, portReg       ; Can't use OUT for ports > 63
-    LDI portReg, controlFlags
-    STS ADCSRA, portReg
-.ENDMACRO
+.equ prescale2   =                           (1<<ADPS0)
+.equ prescale4   =              (1<<ADPS1)
+.equ prescale8   =              (1<<ADPS1) | (1<<ADPS0)
+.equ prescale16  = (1<<ADPS2)
+.equ prescale32  = (1<<ADPS2)              | (1<<ADPS0)
+.equ prescale64  = (1<<ADPS2) | (1<<ADPS1)
+.equ prescale128 = (1<<ADPS2) | (1<<ADPS1) | (1<<ADPS0)
 
-.MACRO analogStart
-    LDI portReg, pinAnalog
-    ORI portReg, muxFlags    ; portReg has full ADMUX value
+.macro setupAnalog
+    ; Switch ADC off
+    CBI ADCSRA, ADEN
+    ; disable digital pin
+    LDI quickReg, 1 << pinAnalog
+    OUT DIDR0, quickReg
+    ; set up multiplexer
+    LDI quickReg, useIRef | 0b00111
+    OUT ADMUX, quickReg
+    ; High byte has 2 bits, low byte has 8 bits
+    CBI ADCSRB, ADLAR
+    ; Set prescale to 128
+    IN quickReg, ADCSRA
+    ORI quickReg, prescale128
+    OUT ADCSRA, quickReg
+    ; Switch ADC on
+    SBI ADCSRA, ADEN
+.endm
 
-    STS ADMUX, portReg       ; can't use OUT for ports > 63
+.macro analogStart
+    SBI ADCSRA, ADSC
+.endm
 
-    LDI portReg, startConv
-    STS ADCSRA, portReg
-.ENDMACRO
-
-.MACRO analogRead
+; it might be a good idea to take 10 readings and average them
+; and multiply by INTERNAL_VREF
+.macro analogRead
 analogReadWait:
-    LDS portReg, ADCSRA      ; Can't use SBIS for port > 31
-    ANDI portReg, (1 << ADSC)
-    BREQ analogReadWait
-
-    LDS inputLreg, ADCL      ; Someone on Stack Overflow said
-    LDS inputHreg, ADCH      ; you must read ADCL first then ADCH
-.ENDMACRO
+    SBIS ADCSRA, ADSC
+    RJMP analogReadWait
+    IN inputLreg, ADCL                ; "Someone on Stack Overflow" said
+    IN inputHreg, ADCH                ; you must read ADCL first then ADCH
+.endm
