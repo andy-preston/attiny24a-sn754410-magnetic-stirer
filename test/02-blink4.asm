@@ -6,25 +6,18 @@
 .include "../lib/registers.asm"
 .include "../lib/digital.asm"
 .include "../lib/delay.asm"
+.include "../lib/rotation-stand-in.asm"
 
 progStart:
     CLI
     setupStackAndReg
     setupPortA
+    setupRotation
     defaultDelay
-
     LDI inputHreg, 0xFF
-    LDI shiftReg, 0b0000.1000
 
 loop:
-    LSR shiftReg
-    BRNE output
-
-    LDI shiftReg, 0b0000.1000
-
-output:
-    OUT PORTA, shiftReg
-
+    rotate
     delayLoop
     DEC inputHreg
     RJMP loop
