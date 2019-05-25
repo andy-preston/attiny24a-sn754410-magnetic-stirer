@@ -2,17 +2,18 @@
 .EQU pinClock = 0
 .EQU pinData = 1
 .EQU pinEnable = 2
-.EQU pinAnalog = 3
-.EQU pinBlink = 7
+.EQU pinBlink = 3
+.EQU pinAnalog = 7
 
 .macro setupPortA
-    SBI DDRA, pinClock | pinData | pinEnable | pinBlink
+    LDI quickReg, 1 << pinClock | 1 << pinData | 1 << pinEnable | 1 << pinBlink
+    OUT DDRA, quickReg
     SBI PORTA, pinBlink
 .endm
 
 .macro blink
     IN ioReg, PORTA
-    LDI quickReg, 0b10000000
+    LDI quickReg, (1 << pinBlink); | (1 << 2)
     EOR ioReg, quickReg
     OUT PORTA, ioReg
 .endm
