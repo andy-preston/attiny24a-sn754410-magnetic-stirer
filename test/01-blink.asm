@@ -11,13 +11,10 @@ progStart:
     CLI
     setupStackAndReg
     setupPortA
-seqStart:
-
     LDI inputHreg, 0xFF
+
 loop:
     blink
     delayLoop
-
     DEC inputHreg
-    BRNE loop
-    RJMP seqStart
+    RJMP loop
