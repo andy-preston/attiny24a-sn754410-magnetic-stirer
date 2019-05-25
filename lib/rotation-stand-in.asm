@@ -3,10 +3,11 @@
 .endm
 
 .macro rotate
-    LSR shiftReg
-    ANDI shiftReg, 0b0000.1111
-    BRNE rot_output
-    LDI shiftReg, 0b0000.1000
-rot_output:
     OUT PORTA, shiftReg
+    LSR shiftReg
+    ;ANDI shiftReg, 0b0000.1111
+    CPI shiftReg, 0
+    BRNE rotate_end
+    LDI shiftReg, 0b0000.1000
+rotate_end:
 .endm
