@@ -8,7 +8,6 @@
 .include "../lib/delay.asm"
 
 progStart:
-    CLI
     setupStackAndReg
     setupPortA
     LDI inputHreg, 0xFF

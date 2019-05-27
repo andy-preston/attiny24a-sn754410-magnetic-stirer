@@ -9,7 +9,6 @@
 .include "../lib/rotation-stand-in.asm"
 
 progStart:
-    CLI
     setupStackAndReg
     setupPortA
     setupRotation
