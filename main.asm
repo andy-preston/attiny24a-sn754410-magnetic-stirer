@@ -1,89 +1,78 @@
-; ATtiny24A - L293D laboratory stirer
+    .device ATtiny24A
 
-            .nolist
-            .include "/usr/local/share/avra/tn24Adef.inc"
-            .list
+    .def timeRegH = r16
+    .def timeRegL = r17
+    .def quickReg = r18
 
-            .def rDelay=R16
-            .def rCount=R17
-            .def rTemp=R18
-            .def rOut=R19
-            .def rMask=R20
+    .org 0x0000
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    cli
 
-            .org 0x0000             ; reset vector
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ; should be shift register pins but this is just the 4 LED tester ;
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ldi quickReg, (1 << PA3) | (1 << PA2) | (1 << PA1) | (1 << PA0)
+    out DDRA, quickReg
 
-            ldi rTemp, RAMEND       ; stack setup; set SPL to RAMEND
-            out SPL, rTemp
+    clr timeRegH
+    clr timeRegL
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;                                                 ;
+    ; OC0B is disabled by default                     ;
+    ; Make sure it stays disbled when timer is set up ;
+    ;                                                 ;
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-            ldi rTemp, 0b00001111
-            out DDRA, rTemp         ; set lower 4 PortA pins as output
-            out DDRB, rTemp         ; set lower 4 PortB pins as output
+    ldi quickReg, (1 << ADC7D) ; disable PORTA/7 (analogue pin)
+    out DIDR0, quickReg
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;; REFS1 ;  REFS0  ;; MUX5 ; MUX4 ; MUX3 ; MUX2 ; MUX1 ; MUX0 ;;
+    ;;   0   ;    0    ;;  0   ;  0   ;  0   ;  1   ;  1   ;  1   ;;
+    ;; Use Vcc as VREF ;;     Use ADC7 as single ended input      ;;
 
-            ldi rOut, 0b00010001    ; output bits
-            mov rMask, rOut         ; initial mask is the same
-mainloop:   out PORTA, rOut         ; ouput lower 4 bits to Port A
-            out PORTB, rOut         ; and Port B
-            rcall pause
+    ldi quickReg, (1 << MUX2) | (1 << MUX1) | (1 << MUX0)
+    out ADMUX, quickReg
 
-            mov rTemp, rMask
-            rol rTemp               ; squeeze the correct value into carry
-            rol rMask               ; do the "real" rotate left
+    ;; ADEN   ;; ADSC  ;; ADATE  ;; ADIF ; ADIE ;; ADPS2 ; ADPS1 ; ADPS0 ;;
+    ;;   1    ;;   0   ;;   0    ;;   0  ;   0  ;;   1   ;   1   ;   1   ;;
+    ;; Enable ;; Start ;; Auto T ;;  Interrupt  ;;      Prescale 128     ;;
 
-            or rOut, rMask
-            out PORTA, rOut         ; ouput lower 4 bits to Port A
-            out PORTB, rOut         ; and Port B
-            rcall pause
+    ldi quickReg, (1 << ADEN) | (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0)
+    out ADCSRA, quickReg
 
-            and rOut, rMask
+startAnalog:
+    sbi ADCSRA, ADSC
 
-            rjmp mainloop           ; and loop forever
+mainLoop:
+    sbis ADSC, ADSC ; skip ADC read if ADC still converting
+    rjmp readAnalog
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ; quick test for before shift reg is in place ;
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-pause:      ldi rTemp, 2            ; select ADC channel 4 (PA4)
-            out ADMUX, rTemp
+    ANDI timeRegL, 0b1100.0000
+    LSR timeRegL
+    LSR timeRegL
+    LSR timeRegL
+    LSR timeRegL
+    LSR timeRegL
+    LSR timeRegL
+    ANDI timeRegH, 0b0000.0011
+    LSL timeRegH
+    LSL timeRegH
+    OR timeRegH, timeRegL
 
-            ldi rTemp, 0b11100111   ; from left to right:
-                                    ; ADC Enable,
-                                    ; Start Conversion,
-                                    ; Free-Running Mode,
-                                    ; write zero to ADC Int flag,
-                                    ; disable int,
-                                    ; prescaler: 111 for XTAL/128
-            out ADCSRA, rTemp
+    OUT PORTA, timeRegH
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ; end of test                                 ;
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-            mov rCount, rDelay      ; start the proper pause routine
+    rjmp mainLoop
 
-pauseloop:  in rTemp, TIFR0         ; read timer status
-            andi rTemp, 0b00000010  ; check overflow flag
-            breq pauseloop
-
-            ldi rTemp, 0b00000010   ; reset overflow (with a 1 not a zero)
-            out TIFR0, rTemp
-
-            dec rCount
-            breq pauseloop
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-adcloop:    in rTemp, ADCSRA
-            andi rTemp, 0b01000000  ; has analogue conversion finsihed
-            breq adcloop
-
-            in rDelay, ADCL         ; get the last ADC result, low byte first,
-            in rTemp, ADCH          ; then high byte
-
-            lsr rTemp               ; shift ADC result right (2 bits)
-            ror rDelay              ; by first shifting out bit 0 of r16,
-            lsr rTemp               ; then shifting it into r17
-            ror rDelay              ; (twice)
-
-            ret
+readAnalog:
+    in timeRegL, ADCL
+    in timeRegH, ADCH
+    rjmp startAnalog

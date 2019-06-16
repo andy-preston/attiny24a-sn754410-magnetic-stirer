@@ -1,0 +1,15 @@
+#!/bin/bash
+
+rm *.hex *.lst *.err
+
+source=$(echo $1 | sed 's/\.asm//g')
+hex=$source.hex
+
+gavrasm $source.asm
+
+if [ ! -f $hex ]
+then
+    exit
+fi
+
+avrdude -p t24 -P /dev/ttyUSB0 -c avrisp -b 19200 -U flash:w:$hex
