@@ -17,16 +17,16 @@
     ldi quickReg, (1 << PA3) | (1 << PA2) | (1 << PA1) | (1 << PA0)
     out DDRA, quickReg
 
-    ldi quickReg, (1 << ADC7D) ; disable PORTA/7 (analogue pin)
+    ldi quickReg, (1 << ADC7D)  ; disable PORTA/7 (analogue pin)
     out DIDR0, quickReg
 
     ldi quickReg, (1 << MUX2) | (1 << MUX1) | (1 << MUX0)
-    out ADMUX, quickReg        ; Use Vcc as VREF - ADC7 as single ended input
+    out ADMUX, quickReg         ; Use Vcc as VREF - ADC7 as single ended input
 
-    ldi quickReg, (1 << ADEN) | (1 << ADSC) ;  enable adc and start conversion
-    out ADCSRA, quickReg
+    ldi quickReg, (1 << ADEN) | (1 << ADSC)
+    out ADCSRA, quickReg        ;  enable adc and start conversion
 
-    ldi quickReg, (1 << CS12) ; prescale timer /256
+    ldi quickReg, (1 << CS12)   ; prescale timer /256
     out TCCR1B, quickReg
 
     clr zeroReg
@@ -40,29 +40,29 @@
     restartOutputSequence
 
 checkTimerTicks:
-    cpi timeRegH, 0           ; If the delay is set to zero
+    cpi timeRegH, 0             ; If the delay is set to zero
     brne startTicking
     cpi timeregL, 0
     brne startTicking
 
-    ldi timeRegL, 0b0000.0001 ; make it one - or the timer will spaz out
+    ldi timeRegL, 0b0000.0001   ; make it one - or the timer will spaz out
 
 startTicking:
-    out OCR1AH, timeRegH      ; Set the number of timer ticks
+    out OCR1AH, timeRegH        ; Set the number of timer ticks
     out OCR1AL, timeRegL
 
-    out TCNT1H, zeroReg       ; start the timer
+    out TCNT1H, zeroReg         ; start the timer
     out TCNT1L, zeroReg
 
 getNextOutput:
     lpm outputReg, Z+
-    cpi outputReg, 0xff       ; end of data marker
-    brne readAnalogue         ; normal data - get on with it
-    restartOutputSequence     ; end of data - start again
+    cpi outputReg, 0xff         ; end of data marker
+    brne readAnalogue           ; normal data - get on with it
+    restartOutputSequence       ; end of data - start again
     rjmp getNextOutput
 
 readAnalogue:
-    sbic ADSC, ADSC           ; skip ADC read if ADC still converting
+    sbic ADSC, ADSC             ; skip ADC read if ADC still converting
     rjmp waitForTimer
 
     in timeRegL, ADCL
@@ -70,11 +70,11 @@ readAnalogue:
     sbi ADCSRA, ADSC
 
 waitForTimer:
-    sbis TIFR1, OCF1A         ; if TIFR1 has OCF1A set skip out of the loop
-    rjmp waitForTimer         ; wait till the timer overflow flag is SET
+    sbis TIFR1, OCF1A           ; if TIFR1 has OCF1A set skip out of the loop
+    rjmp waitForTimer           ; wait till the timer overflow flag is SET
 
-    out PORTA, outputReg      ; output the next sequence step
-    sbi TIFR1, OCF1A          ; clear timer1 overflow flag (by setting it?????)
+    out PORTA, outputReg        ; output the next sequence step
+    sbi TIFR1, OCF1A            ; clear timer1 overflow flag (by setting it?????)
 
     rjmp checkTimerTicks
 
