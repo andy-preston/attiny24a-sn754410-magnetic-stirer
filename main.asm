@@ -62,7 +62,7 @@ getNextOutput:
     rjmp getNextOutput
 
 readAnalogue:
-    sbic ADSC, ADSC             ; skip ADC read if ADC still converting
+    sbic ADCSRA, ADSC           ; skip ADC read if ADC still converting
     rjmp waitForTimer
 
     in timeRegL, ADCL
