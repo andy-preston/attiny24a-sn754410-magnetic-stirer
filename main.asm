@@ -38,7 +38,7 @@
     ;;   1    ;;   0   ;;   0    ;;   0  ;   0  ;;   1   ;   1   ;   1   ;;
     ;; Enable ;; Start ;; Auto T ;;  Interrupt  ;;      Prescale 128     ;;
 
-    ldi quickReg, (1 << ADEN) | (1 << ADPS2) | (1 << ADPS1) | (1 << ADPS0)
+    ldi quickReg, (1 << ADEN) | (1 << ADPS0)
     out ADCSRA, quickReg
 
 startAnalog:
@@ -52,19 +52,21 @@ mainLoop:
     ; quick test for before shift reg is in place ;
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-    ANDI timeRegL, 0b1100.0000
-    LSR timeRegL
-    LSR timeRegL
-    LSR timeRegL
-    LSR timeRegL
-    LSR timeRegL
-    LSR timeRegL
-    ANDI timeRegH, 0b0000.0011
     LSL timeRegH
     LSL timeRegH
-    OR timeRegH, timeRegL
+    ANDI timeRegH, 0b0000.1100
 
-    OUT PORTA, timeRegH
+    LSR timeRegL
+    LSR timeRegL
+    LSR timeRegL
+    LSR timeRegL
+    LSR timeRegL
+    LSR timeRegL
+    OR timeRegL, timeRegH
+
+    OUT PORTA, timeRegL
+
+
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ; end of test                                 ;
