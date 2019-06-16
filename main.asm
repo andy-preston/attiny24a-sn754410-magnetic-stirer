@@ -26,8 +26,8 @@
     ldi quickReg, (1 << ADEN) | (1 << ADSC)
     out ADCSRA, quickReg        ;  enable adc and start conversion
 
-    ldi quickReg, (1 << CS12)
-    out TCCR1B, quickReg        ; prescale timer /256
+    ldi quickReg, (1 << CS12) | (1 << CS10)
+    out TCCR1B, quickReg        ; prescale timer /1024
 
     clr zeroReg
     clr timeRegH
