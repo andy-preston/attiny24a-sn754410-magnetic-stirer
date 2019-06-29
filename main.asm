@@ -3,7 +3,8 @@
     .def timeRegH = r16
     .def timeRegL = r17
     .def quickReg = r18
-    .def outputReg = r19
+    .def seqAReg = r19
+    .def seqBReg = r20
     .def Z = r30
     .def ZL = r30
     .def ZH = r31
@@ -11,13 +12,13 @@
 
     cli
 
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    ; should be shift register pins but this is just the 4 LED tester ;
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    ldi quickReg, (1 << PA3) | (1 << PA2) | (1 << PA1) | (1 << PA0)
-    out DDRA, quickReg
+    ldi quickReg, (1 << PB1) | (1 << PB0)
+    out DDRB, quickReg          ; H-bridge enable pins
 
-    ldi quickReg, (1 << ADC7D)  ; disable PORTA/7 (analogue pin)
+    ldi quickReg, (1 << PA3) | (1 << PA2) | (1 << PA1) | (1 << PA0)
+    out DDRA, quickReg          ; H-bridge forward/reverse pins
+
+    ldi quickReg, (1 << ADC7D)  ; disable PA7 (for the analogue pin)
     out DIDR0, quickReg
 
     ldi quickReg, (1 << MUX2) | (1 << MUX1) | (1 << MUX0)
@@ -54,12 +55,13 @@ startTicking:
     out TCNT1H, zeroReg         ; start the timer
     out TCNT1L, zeroReg
 
-getNextOutput:
-    lpm outputReg, Z+
-    cpi outputReg, 0xff         ; end of data marker
+getSequenceStep:
+    lpm seqAReg, Z+
+    lpm seqBReg, Z+
+    cpi seqAReg, 0xff           ; end of data marker
     brne readAnalogue           ; normal data - get on with it
     restartOutputSequence       ; end of data - start again
-    rjmp getNextOutput
+    rjmp getSequenceStep
 
 readAnalogue:
     sbic ADCSRA, ADSC           ; skip ADC read if ADC still converting
@@ -73,12 +75,30 @@ waitForTimer:
     sbis TIFR1, OCF1A           ; if TIFR1 has OCF1A set skip out of the loop
     rjmp waitForTimer           ; wait till the timer overflow flag is SET
 
-    out PORTA, outputReg        ; output the next sequence step
+    out PORTA, seqAReg          ; output to the forward/reverse pins
+    out PORTB, seqBReg          ; output to the enable pins
+
     sbi TIFR1, OCF1A            ; clear timer1 overflow flag (by setting it?????)
 
     rjmp checkTimerTicks
 
+    .equ endS = 0xff
+
+    .equ forA = 0b00000001
+    .equ revA = 0b00000010
+    .equ forB = 0b00000100
+    .equ revB = 0b00001000
+
+    .equ enA = 0b00000001
+    .equ enB = 0b00000010
+
 sequence:
-    .db 0b0000.0001, 0b0000.0011, 0b0000.0010, 0b0000.0110
-    .db 0b0000.0100, 0b0000.1100, 0b0000.1000, 0b0000.1001
-    .db 0xff,  0xff
+    .db forA        , enA       ; 1
+    .db forA | forB , enA | enB ; 2
+    .db        forB ,       enB ; 3
+    .db revA | forB , enA | enB ; 4
+    .db revA        , enA       ; 5
+    .db revA | revB , enA | enB ; 6
+    .db        revB ,       enB ; 7
+    .db forA | revB , enA | enB ; 8
+    .db    ends     ,   ends
