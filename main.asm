@@ -67,8 +67,9 @@ readAnalogue:
     sbic ADCSRA, ADSC           ; skip ADC read if ADC still converting
     rjmp waitForTimer
 
-    in timeRegL, ADCL
-    in timeRegH, ADCH
+    in timeRegL, ADCL           ; ldi timeRegL, 255
+    in timeRegH, ADCH           ; ldi timeRegH, 128
+
     sbi ADCSRA, ADSC
 
 waitForTimer:
