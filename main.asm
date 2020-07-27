@@ -3,9 +3,8 @@
     .def timeRegH = r16
     .def timeRegL = r17
     .def quickReg = r18
-    .def seqAReg = r19
-    .def seqBReg = r20
-    .org 0x0000
+    .def seqDirReg = r19
+    .def seqEnReg = r20
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;
@@ -14,6 +13,7 @@
     ; again
     ;
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    .org 0x0000
 
     cli
 
@@ -61,10 +61,11 @@ startTicking:
     out TCNT1L, zeroReg
 
 getSequenceStep:
-    lpm seqAReg, Z+
-    lpm seqBReg, Z+
-    cpi seqAReg, 0xff           ; end of data marker
+    lpm seqDirReg, Z+
+    lpm seqEnReg, Z+
+    cpi seqDirReg, ends         ; end of data marker
     brne readAnalogue           ; normal data - get on with it
+
     restartOutputSequence       ; end of data - start again
     rjmp getSequenceStep
 
@@ -81,8 +82,8 @@ waitForTimer:
     sbis TIFR1, OCF1A           ; if TIFR1 has OCF1A set skip out of the loop
     rjmp waitForTimer           ; wait till the timer overflow flag is SET
 
-    out PORTA, seqAReg          ; output to the forward/reverse pins
-    out PORTB, seqBReg          ; output to the enable pins
+    out PORTA, seqDirReg        ; output to the forward/reverse pins
+    out PORTB, seqEnReg         ; output to the enable pins
 
     sbi TIFR1, OCF1A            ; clear timer1 overflow flag (by setting it?????)
 
