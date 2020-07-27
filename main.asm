@@ -6,13 +6,6 @@
     .def seqDirReg = r19
     .def seqEnReg = r20
 
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    ;
-    ; This code has been renamed from "mic5841 stirer" to "sn754419 stirer"
-    ; so it's probaby going to need something of a rewrite before it'll work
-    ; again
-    ;
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     .org 0x0000
 
     cli
