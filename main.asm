@@ -10,6 +10,14 @@
     .def ZH = r31
     .org 0x0000
 
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;
+    ; This code has been renamed from "mic5841 stirer" to "sn754419 stirer"
+    ; so it's probaby going to need something of a rewrite before it'll work
+    ; again
+    ;
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
     cli
 
     ldi quickReg, (1 << PB1) | (1 << PB0)
