@@ -5,9 +5,6 @@
     .def quickReg = r18
     .def seqAReg = r19
     .def seqBReg = r20
-    .def Z = r30
-    .def ZL = r30
-    .def ZH = r31
     .org 0x0000
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
