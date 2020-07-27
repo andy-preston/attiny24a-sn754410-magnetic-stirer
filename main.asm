@@ -1,4 +1,5 @@
     .device ATtiny24A
+
     .def zeroReg = r1
     .def timeRegH = r16
     .def timeRegL = r17
