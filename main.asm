@@ -33,7 +33,7 @@
     out ADMUX, quickReg         ; Use Vcc as VREF - ADC7 as single ended input
 
     ldi quickReg, (1 << ADEN) | (1 << ADSC)
-    out ADCSRA, quickReg        ;  enable adc and start conversion
+    out ADCSRA, quickReg        ;  enable ADC and start conversion
 
     ldi quickReg, (1 << CS12) | (1 << CS10)
     out TCCR1B, quickReg        ; prescale timer /1024
