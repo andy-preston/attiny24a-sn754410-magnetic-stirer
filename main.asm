@@ -6,6 +6,16 @@
     .def seqDirReg = r19
     .def seqEnReg = r20
 
+    .equ endS = 0xff
+
+    .equ forA = 0b0000.0001
+    .equ revA = 0b0000.0010
+    .equ forB = 0b0000.0100
+    .equ revB = 0b0000.1000
+
+    .equ enA = 0b0000.0001
+    .equ enB = 0b0000.0010
+
     .org 0x0000
 
     cli
@@ -81,16 +91,6 @@ waitForTimer:
     sbi TIFR1, OCF1A            ; clear timer1 overflow flag (by setting it?????)
 
     rjmp checkTimerTicks
-
-    .equ endS = 0xff
-
-    .equ forA = 0b00000001
-    .equ revA = 0b00000010
-    .equ forB = 0b00000100
-    .equ revB = 0b00001000
-
-    .equ enA = 0b00000001
-    .equ enB = 0b00000010
 
 sequence:
     .db forA        , enA       ; 1
